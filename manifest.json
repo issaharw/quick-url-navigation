@@ -2,11 +2,10 @@
   "manifest_version": 3,
   "name": "Quick URL Navigator",
   "version": "1.0",
-  "description": "Open a modal with Command+K to quickly navigate to URLs",
+  "description": "Open a modal with Command+E to quickly navigate to URLs",
   "permissions": [
     "tabs",
     "storage",
-    "scripting",
     "history",
     "bookmarks"
   ],
@@ -26,12 +25,5 @@
   "background": {
     "service_worker": "background.js"
   },
-  "content_scripts": [
-    {
-      "matches": ["<all_urls>"],
-      "js": ["content.js"],
-      "css": ["styles.css"]
-    }
-  ],
   "options_page": "options.html"
 }

@@ -40,7 +40,7 @@ async function search(query) {
   });
   
   // Limit results
-  results = results.slice(0, 15);
+  results = results.slice(0, 20);
   
   selectedIndex = results.length > 0 ? 0 : -1;
   renderResults();
@@ -54,7 +54,7 @@ async function searchTabs(query) {
         const url = (tab.url || '').toLowerCase();
         return title.includes(query) || url.includes(query);
       });
-      resolve(matches.slice(0, 5).map(tab => ({
+      resolve(matches.slice(0, 8).map(tab => ({
         title: tab.title || tab.url,
         url: tab.url,
         tabId: tab.id,
@@ -69,7 +69,7 @@ async function searchBookmarks(query) {
     chrome.bookmarks.search(query, (results) => {
       resolve(results
         .filter(b => b.url) // Only items with URLs (not folders)
-        .slice(0, 5)
+        .slice(0, 8)
         .map(b => ({
           title: b.title || b.url,
           url: b.url
@@ -83,7 +83,7 @@ async function searchHistory(query) {
   return new Promise(resolve => {
     chrome.history.search({
       text: query,
-      maxResults: 10
+      maxResults: 15
     }, (results) => {
       resolve(results.map(h => ({
         title: h.title || h.url,
@@ -159,11 +159,14 @@ function openResult(index) {
   if (index >= 0 && index < results.length) {
     const item = results[index];
     if (item.type === 'tab' && item.tabId) {
-      // Switch to existing tab
-      chrome.tabs.update(item.tabId, { active: true });
-      chrome.windows.update(item.windowId, { focused: true });
+      // Switch to existing tab - send to background and close immediately
+      chrome.runtime.sendMessage({ 
+        action: 'switchToTab', 
+        tabId: item.tabId, 
+        windowId: item.windowId 
+      });
     } else {
-      chrome.tabs.create({ url: item.url });
+      chrome.runtime.sendMessage({ action: 'openURL', url: item.url });
     }
     window.close();
   }
@@ -172,7 +175,7 @@ function openResult(index) {
 function openURL(query) {
   // Search on Google
   const searchURL = 'https://www.google.com/search?q=' + encodeURIComponent(query);
-  chrome.tabs.create({ url: searchURL });
+  chrome.runtime.sendMessage({ action: 'openURL', url: searchURL });
   window.close();
 }
 
@@ -211,3 +214,8 @@ input.addEventListener('keydown', (e) => {
 
 // Focus input on load
 input.focus();
+
+// Close popup when window loses focus
+window.addEventListener('blur', () => {
+  window.close();
+});
