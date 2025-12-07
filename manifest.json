@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "Quick URL Navigator",
+  "name": "Easy Navigator",
   "version": "1.0",
-  "description": "Open a modal with Command+E to quickly navigate to URLs",
+  "description": "Open a modal with Command+E to easily navigate to all URLs",
   "permissions": [
     "tabs",
     "history",
@@ -10,7 +10,7 @@
   ],
   "action": {
     "default_popup": "popup.html",
-    "default_title": "Quick URL Navigator"
+    "default_title": "Easy Navigator"
   },
   "commands": {
     "open-modal": {
@@ -18,7 +18,7 @@
         "default": "Ctrl+E",
         "mac": "Command+E"
       },
-      "description": "Open URL navigation modal"
+      "description": "Open the easy navigation modal"
     }
   },
   "background": {
