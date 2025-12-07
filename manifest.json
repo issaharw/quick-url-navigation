@@ -5,7 +5,6 @@
   "description": "Open a modal with Command+E to quickly navigate to URLs",
   "permissions": [
     "tabs",
-    "storage",
     "history",
     "bookmarks"
   ],
