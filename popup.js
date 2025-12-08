@@ -1,5 +1,6 @@
 const input = document.getElementById('url-input');
 const resultsContainer = document.getElementById('results');
+const infoIcon = document.getElementById('info-icon');
 
 let results = [];
 let selectedIndex = -1;
@@ -10,6 +11,22 @@ let showUrl = true;
 chrome.storage.sync.get(['showUrl'], (result) => {
   showUrl = result.showUrl !== false; // Default to true
 });
+
+// Open options page when clicking info icon
+infoIcon.addEventListener('click', () => {
+  chrome.runtime.openOptionsPage();
+});
+
+// Get favicon URL for a given page URL
+function getFaviconUrl(url) {
+  try {
+    const urlObj = new URL(url);
+    // Use Google's favicon service as fallback
+    return `https://www.google.com/s2/favicons?domain=${urlObj.hostname}&sz=64`;
+  } catch {
+    return null;
+  }
+}
 
 // Search open tabs, history and bookmarks
 async function search(query) {
@@ -64,7 +81,8 @@ async function searchTabs(query) {
         title: tab.title || tab.url,
         url: tab.url,
         tabId: tab.id,
-        windowId: tab.windowId
+        windowId: tab.windowId,
+        favIconUrl: tab.favIconUrl
       })));
     });
   });
@@ -102,7 +120,7 @@ async function searchHistory(query) {
 function renderResults() {
   if (results.length === 0) {
     if (input.value.trim()) {
-      resultsContainer.innerHTML = '<div class="no-results">No matches found. Press Enter to navigate to URL.</div>';
+      resultsContainer.innerHTML = '<div class="no-results">No matches found. Press Enter to search.</div>';
     } else {
       resultsContainer.innerHTML = '';
     }
@@ -110,31 +128,39 @@ function renderResults() {
   }
 
   let html = '';
-  let currentType = null;
 
   results.forEach((item, index) => {
-    if (item.type !== currentType) {
-      currentType = item.type;
-      const labels = {
-        tab: '🔄 Switch to tab',
-        history: '🕐 History',
-        bookmark: '⭐ Bookmarks'
-      };
-      html += `<div class="section-label">${labels[currentType]}</div>`;
-    }
-
-    const icons = { tab: '🔄', history: '🕐', bookmark: '⭐' };
-    const icon = icons[item.type];
     const selected = index === selectedIndex ? 'selected' : '';
+    
+    // Get favicon - use tab's favicon if available, otherwise use Google's service
+    const faviconUrl = item.favIconUrl || getFaviconUrl(item.url);
+    const faviconHtml = faviconUrl 
+      ? `<img src="${escapeHtml(faviconUrl)}" onerror="this.style.display='none';this.nextElementSibling.style.display='block'"><span class="fallback-icon" style="display:none">🌐</span>`
+      : `<span class="fallback-icon">🌐</span>`;
+    
+    // Action text and arrow
+    const actionLabels = {
+      tab: 'Switch to Tab',
+      history: 'Open',
+      bookmark: 'Open'
+    };
+    const actionLabel = actionLabels[item.type];
     
     const urlHtml = showUrl ? `<div class="result-url">${escapeHtml(item.url)}</div>` : '';
     
     html += `
       <div class="result-item ${selected}" data-index="${index}">
-        <div class="result-icon">${icon}</div>
+        <div class="result-favicon">${faviconHtml}</div>
         <div class="result-content">
           <div class="result-title">${escapeHtml(item.title)}</div>
           ${urlHtml}
+        </div>
+        <div class="result-action">
+          ${actionLabel}
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M5 12h14"></path>
+            <path d="m12 5 7 7-7 7"></path>
+          </svg>
         </div>
       </div>
     `;
