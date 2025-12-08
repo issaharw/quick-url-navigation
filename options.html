@@ -46,11 +46,83 @@
       border-radius: 3px;
       font-family: 'Courier New', monospace;
     }
+    .toggle-container {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 0;
+    }
+    .toggle-label {
+      font-size: 14px;
+      color: #333;
+    }
+    .toggle-switch {
+      position: relative;
+      width: 48px;
+      height: 26px;
+    }
+    .toggle-switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+    .toggle-slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: #ccc;
+      transition: 0.3s;
+      border-radius: 26px;
+    }
+    .toggle-slider:before {
+      position: absolute;
+      content: "";
+      height: 20px;
+      width: 20px;
+      left: 3px;
+      bottom: 3px;
+      background-color: white;
+      transition: 0.3s;
+      border-radius: 50%;
+    }
+    input:checked + .toggle-slider {
+      background-color: #2196f3;
+    }
+    input:checked + .toggle-slider:before {
+      transform: translateX(22px);
+    }
+    .saved-indicator {
+      font-size: 12px;
+      color: #4caf50;
+      margin-left: 10px;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    .saved-indicator.show {
+      opacity: 1;
+    }
   </style>
 </head>
 <body>
   <h1>⚡ Quick URL Navigator Settings</h1>
   
+  <div class="setting-section">
+    <h2>Display Options</h2>
+    <div class="toggle-container">
+      <span class="toggle-label">Show URL in search results</span>
+      <div style="display: flex; align-items: center;">
+        <label class="toggle-switch">
+          <input type="checkbox" id="showUrl" checked>
+          <span class="toggle-slider"></span>
+        </label>
+        <span class="saved-indicator" id="savedIndicator">Saved!</span>
+      </div>
+    </div>
+  </div>
+
   <div class="setting-section">
     <h2>Keyboard Shortcut</h2>
     <div class="info">
@@ -79,5 +151,7 @@
       </ul>
     </div>
   </div>
+
+  <script src="options.js"></script>
 </body>
 </html>

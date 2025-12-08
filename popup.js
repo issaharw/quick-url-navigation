@@ -4,6 +4,12 @@ const resultsContainer = document.getElementById('results');
 let results = [];
 let selectedIndex = -1;
 let debounceTimer = null;
+let showUrl = true;
+
+// Load settings
+chrome.storage.sync.get(['showUrl'], (result) => {
+  showUrl = result.showUrl !== false; // Default to true
+});
 
 // Search open tabs, history and bookmarks
 async function search(query) {
@@ -121,12 +127,14 @@ function renderResults() {
     const icon = icons[item.type];
     const selected = index === selectedIndex ? 'selected' : '';
     
+    const urlHtml = showUrl ? `<div class="result-url">${escapeHtml(item.url)}</div>` : '';
+    
     html += `
       <div class="result-item ${selected}" data-index="${index}">
         <div class="result-icon">${icon}</div>
         <div class="result-content">
           <div class="result-title">${escapeHtml(item.title)}</div>
-          <div class="result-url">${escapeHtml(item.url)}</div>
+          ${urlHtml}
         </div>
       </div>
     `;
