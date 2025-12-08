@@ -22,11 +22,11 @@ async function togglePopup() {
   // Open new popup
   const currentWindow = await chrome.windows.getCurrent();
   
-  const popupWidth = 500;
-  const popupHeight = 520;
+  const popupWidth = 750;
+  const popupHeight = 500;
   
   const left = Math.round(currentWindow.left + (currentWindow.width - popupWidth) / 2);
-  const top = Math.round(currentWindow.top + (currentWindow.height - popupHeight) / 2 - 100);
+  const top = Math.round(currentWindow.top + (currentWindow.height - popupHeight) / 2);
   
   const popup = await chrome.windows.create({
     url: 'popup.html',
