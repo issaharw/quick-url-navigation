@@ -63,7 +63,21 @@ async function search(query) {
   });
   
   // Limit results
-  results = results.slice(0, 20);
+  results = results.slice(0, 19);
+  
+  // Insert "Search for..." option at second position (or first if no results)
+  const searchOption = {
+    title: `Search for "${query.trim()}"`,
+    url: 'https://www.google.com/search?q=' + encodeURIComponent(query.trim()),
+    type: 'search',
+    searchQuery: query.trim()
+  };
+  
+  if (results.length === 0) {
+    results = [searchOption];
+  } else {
+    results.splice(1, 0, searchOption);
+  }
   
   selectedIndex = results.length > 0 ? 0 : -1;
   renderResults();
@@ -132,17 +146,23 @@ function renderResults() {
   results.forEach((item, index) => {
     const selected = index === selectedIndex ? 'selected' : '';
     
-    // Get favicon - use tab's favicon if available, otherwise use Google's service
-    const faviconUrl = item.favIconUrl || getFaviconUrl(item.url);
-    const faviconHtml = faviconUrl 
-      ? `<img src="${escapeHtml(faviconUrl)}" onerror="this.style.display='none';this.nextElementSibling.style.display='block'"><span class="fallback-icon" style="display:none">🌐</span>`
-      : `<span class="fallback-icon">🌐</span>`;
+    // Get favicon - use search icon for search type, tab's favicon if available, otherwise use Google's service
+    let faviconHtml;
+    if (item.type === 'search') {
+      faviconHtml = `<span class="fallback-icon">🔍</span>`;
+    } else {
+      const faviconUrl = item.favIconUrl || getFaviconUrl(item.url);
+      faviconHtml = faviconUrl 
+        ? `<img src="${escapeHtml(faviconUrl)}" onerror="this.style.display='none';this.nextElementSibling.style.display='block'"><span class="fallback-icon" style="display:none">🌐</span>`
+        : `<span class="fallback-icon">🌐</span>`;
+    }
     
     // Action text and arrow
     const actionLabels = {
       tab: 'Switch to Tab',
       history: 'Open',
-      bookmark: 'Open'
+      bookmark: 'Open',
+      search: 'Search'
     };
     const actionLabel = actionLabels[item.type];
     
