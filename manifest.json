@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Easy Navigator",
-  "version": "2.0",
+  "version": "2.1",
   "description": "Open a modal with Command+E to easily navigate to all URLs",
   "permissions": [
     "tabs",
