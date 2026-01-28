@@ -28,6 +28,23 @@ function getFaviconUrl(url) {
   }
 }
 
+// Check if query looks like a URL
+function looksLikeUrl(query) {
+  const trimmed = query.trim().toLowerCase();
+  // Common TLDs to detect
+  const tlds = ['.com', '.co.il', '.org', '.net', '.io', '.dev', '.app', '.gov', '.edu', '.co', '.me', '.info', '.biz', '.tv', '.cc', '.xyz'];
+  return tlds.some(tld => trimmed.endsWith(tld) || trimmed.includes(tld + '/'));
+}
+
+// Convert query to a proper URL
+function toUrl(query) {
+  let url = query.trim();
+  if (!url.startsWith('http://') && !url.startsWith('https://')) {
+    url = 'https://' + url;
+  }
+  return url;
+}
+
 // Search open tabs, history and bookmarks
 async function search(query) {
   if (!query.trim()) {
@@ -65,18 +82,31 @@ async function search(query) {
   // Limit results
   results = results.slice(0, 19);
   
-  // Insert "Search for..." option at second position (or first if no results)
-  const searchOption = {
-    title: `Search for "${query.trim()}"`,
-    url: 'https://www.google.com/search?q=' + encodeURIComponent(query.trim()),
-    type: 'search',
-    searchQuery: query.trim()
-  };
+  // Insert "Go to" or "Search for" option at second position (or first if no results)
+  const trimmedQuery = query.trim();
+  let actionOption;
+  
+  if (looksLikeUrl(trimmedQuery)) {
+    // It looks like a URL - offer to go directly
+    actionOption = {
+      title: `Go to ${trimmedQuery}`,
+      url: toUrl(trimmedQuery),
+      type: 'goto'
+    };
+  } else {
+    // It's a search query
+    actionOption = {
+      title: `Search for "${trimmedQuery}"`,
+      url: 'https://www.google.com/search?q=' + encodeURIComponent(trimmedQuery),
+      type: 'search',
+      searchQuery: trimmedQuery
+    };
+  }
   
   if (results.length === 0) {
-    results = [searchOption];
+    results = [actionOption];
   } else {
-    results.splice(1, 0, searchOption);
+    results.splice(1, 0, actionOption);
   }
   
   selectedIndex = results.length > 0 ? 0 : -1;
@@ -146,10 +176,12 @@ function renderResults() {
   results.forEach((item, index) => {
     const selected = index === selectedIndex ? 'selected' : '';
     
-    // Get favicon - use search icon for search type, tab's favicon if available, otherwise use Google's service
+    // Get favicon - use search icon for search type, globe for goto, tab's favicon if available, otherwise use Google's service
     let faviconHtml;
     if (item.type === 'search') {
       faviconHtml = `<span class="fallback-icon">🔍</span>`;
+    } else if (item.type === 'goto') {
+      faviconHtml = `<span class="fallback-icon">🌐</span>`;
     } else {
       const faviconUrl = item.favIconUrl || getFaviconUrl(item.url);
       faviconHtml = faviconUrl 
@@ -162,7 +194,8 @@ function renderResults() {
       tab: 'Switch to Tab',
       history: 'Open',
       bookmark: 'Open',
-      search: 'Search'
+      search: 'Search',
+      goto: 'Go to'
     };
     const actionLabel = actionLabels[item.type];
     
@@ -227,9 +260,15 @@ function openResult(index) {
 }
 
 function openURL(query) {
-  // Search on Google
-  const searchURL = 'https://www.google.com/search?q=' + encodeURIComponent(query);
-  chrome.runtime.sendMessage({ action: 'openURL', url: searchURL });
+  let url;
+  if (looksLikeUrl(query)) {
+    // Go directly to the URL
+    url = toUrl(query);
+  } else {
+    // Search on Google
+    url = 'https://www.google.com/search?q=' + encodeURIComponent(query);
+  }
+  chrome.runtime.sendMessage({ action: 'openURL', url: url });
   window.close();
 }
 
